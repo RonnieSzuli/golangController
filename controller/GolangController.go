@@ -13,22 +13,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-    host     = "localhost"
-    port     = 5432
-    user     = "postgres"
-    password = ""
-    dbname   = "postgres"
-)
-
 type Student struct {
 	Id      int64 `json:"Id"`
 	Name 	string `json:"Name"`
 }
 
+var a []string
 var Students []Student
 
-func ReturnAllStudents(w http.ResponseWriter, r *http.Request) {
+func ReturnAllStudents(w http.ResponseWriter, r *http.Request, password string) {
 	json.NewEncoder(w).Encode(Students)
 	db, err := OpenConnection();
 	returnAllStmt := `select * from students`
@@ -36,7 +29,7 @@ func ReturnAllStudents(w http.ResponseWriter, r *http.Request) {
 	HandleTransaction(db, err, e)
 }
 
-func ReturnSingleStudent(w http.ResponseWriter, r *http.Request) {
+func ReturnSingleStudent(w http.ResponseWriter, r *http.Request, password string) {
 	vars := mux.Vars(r)
 	key := vars["id"]
 	for _, student := range Students {
@@ -50,7 +43,7 @@ func ReturnSingleStudent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateNewStudent(w http.ResponseWriter, r *http.Request) {
+func CreateNewStudent(w http.ResponseWriter, r *http.Request, password string) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	var student Student
 	json.Unmarshal(reqBody, &student)
@@ -63,7 +56,7 @@ func CreateNewStudent(w http.ResponseWriter, r *http.Request) {
 	HandleTransaction(db, err, e)
 }
 
-func DeleteStudent(w http.ResponseWriter, r *http.Request) {
+func DeleteStudent(w http.ResponseWriter, r *http.Request, password string) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	for index, student := range Students {
@@ -77,7 +70,7 @@ func DeleteStudent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UpdateStudent(w http.ResponseWriter, r *http.Request) {
+func UpdateStudent(w http.ResponseWriter, r *http.Request, password string) {
 	vars := mux.Vars(r)
 	id, err := strconv.ParseInt(vars["id"], 0, 64)
 	CheckError(err)
@@ -109,8 +102,13 @@ func CheckError(err error) {
     }
 }
 
+func GetDBCredentials(host string, port string, user string, password string, dbName string) []string {
+	a :=  []string {host, port, user, password, dbName}
+	return a
+}
+
 func OpenConnection() (*sql.DB, error) {
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", a[0], a[1], a[2], a[3], a[4])
 	db, err := sql.Open("postgres", psqlconn)
 	return db, err
 }
