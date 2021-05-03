@@ -13,19 +13,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const (
-    host     = "localhost"
-    port     = 5432
-    user     = "postgres"
-    password = ""
-    dbname   = "postgres"
-)
-
 type Student struct {
 	Id      int64 `json:"Id"`
 	Name 	string `json:"Name"`
 }
 
+var a []string
 var Students []Student
 
 func ReturnAllStudents(w http.ResponseWriter, r *http.Request) {
@@ -109,8 +102,13 @@ func CheckError(err error) {
     }
 }
 
+func GetDBCredentials(host string, port string, user string, password string, dbName string) []string {
+	a :=  []string {host, port, user, password, dbName}
+	return a
+}
+
 func OpenConnection() (*sql.DB, error) {
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", a[0], a[1], a[2], a[3], a[4])
 	db, err := sql.Open("postgres", psqlconn)
 	return db, err
 }
